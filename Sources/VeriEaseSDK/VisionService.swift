@@ -8,9 +8,11 @@
 import UIKit
 import Vision
 
-class VisionService {
-    
-    func detectFaceLandmarks(image: UIImage, completion: @escaping (VNFaceObservation?) -> Void) {
+public class VisionService {
+
+    public init() {}
+
+    public func detectFaceLandmarks(image: UIImage, completion: @escaping (VNFaceObservation?) -> Void) {
         guard let cgImage = image.cgImage else {
             completion(nil)
             return
@@ -34,7 +36,7 @@ class VisionService {
         }
     }
     
-    func compareFaces(licenseFace: VNFaceObservation, liveFace: VNFaceObservation) -> Bool {
+    public func compareFaces(licenseFace: VNFaceObservation, liveFace: VNFaceObservation) -> Bool {
         guard let licenseLandmarks = licenseFace.landmarks,
               let liveLandmarks = liveFace.landmarks else {
             return false
