@@ -7,8 +7,9 @@
 
 import UIKit
 
-class ImageProcessingService {
-    func resizeImage(_ image: UIImage, to size: CGSize) -> UIImage? {
+public class ImageProcessingService {
+    // Resize image to a given size
+    public func resizeImage(_ image: UIImage, to size: CGSize) -> UIImage? {
         UIGraphicsBeginImageContext(size)
         image.draw(in: CGRect(origin: .zero, size: size))
         let resizedImage = UIGraphicsGetImageFromCurrentImageContext()
@@ -16,7 +17,8 @@ class ImageProcessingService {
         return resizedImage
     }
     
-    func convertToPixelBuffer(image: UIImage) -> CVPixelBuffer? {
+    // Convert UIImage to CVPixelBuffer
+    public func convertToPixelBuffer(image: UIImage) -> CVPixelBuffer? {
         guard let cgImage = image.cgImage else { return nil }
         let frameSize = CGSize(width: cgImage.width, height: cgImage.height)
         
