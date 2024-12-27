@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = 'VeriEaseSDK'
-  s.version          = '1.0.1'
+  s.version          = '1.0.2'
   s.swift_versions   = '5.0'
   s.summary          = 'A SDK for face recognition and camera-based applications.'
   s.description      = <<-DESC
@@ -13,6 +13,7 @@ Pod::Spec.new do |s|
   s.source           = { :git => 'https://github.com/preetendali001/VeriEaseSDK.git', :tag => s.version.to_s }
   s.platform         = :ios, '15.0'
   s.source_files     = 'Sources/VeriEaseSDK/**/*.{swift}'
-  s.frameworks       = 'UIKit', 'Vision', 'AVFoundation', 'SwiftUI'
+  s.frameworks       = 'UIKit', 'Vision', 'AVFoundation'
+  s.requires_arc     = true
   s.static_framework = true
 end
