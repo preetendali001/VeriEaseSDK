@@ -8,9 +8,9 @@
 import SwiftUI
 import AVFoundation
 
-public struct LivePhotoCaptureView: View { // Make the struct public
+public struct LivePhotoCaptureView: View {
     
-    public var onCapture: (UIImage) -> Void // Make the closure public
+    public var onCapture: (UIImage) -> Void
 
     @State private var previewLayer: AVCaptureVideoPreviewLayer?
     @State private var photoOutput: AVCapturePhotoOutput?
@@ -19,7 +19,7 @@ public struct LivePhotoCaptureView: View { // Make the struct public
     @State private var currentDevicePosition: AVCaptureDevice.Position = .front
     @State private var photoCaptureDelegate: PhotoCaptureDelegate?
     @State private var isRealLivePhoto = false
-    @StateObject public var coordinator = CameraCoordinator() // Make the coordinator public
+    @StateObject public var coordinator = CameraCoordinator()
     
     public var body: some View {
         VStack {
