@@ -8,17 +8,23 @@
 import SwiftUI
 import AVFoundation
 
-struct CameraPreview: UIViewControllerRepresentable {
-    let previewLayer: AVCaptureVideoPreviewLayer
+public struct CameraPreview: UIViewControllerRepresentable { // Make it public
+    public let previewLayer: AVCaptureVideoPreviewLayer // Make property public
 
-    func makeUIViewController(context: Context) -> UIViewController {
+    // Public initializer to allow external initialization
+    public init(previewLayer: AVCaptureVideoPreviewLayer) {
+        self.previewLayer = previewLayer
+    }
+
+    public func makeUIViewController(context: Context) -> UIViewController { // Make public
         let controller = UIViewController()
         controller.view.layer.addSublayer(previewLayer)
         previewLayer.frame = controller.view.bounds
         return controller
     }
 
-    func updateUIViewController(_ uiViewController: UIViewController, context: Context) {
-        
+    public func updateUIViewController(_ uiViewController: UIViewController, context: Context) { // Make public
+        previewLayer.frame = uiViewController.view.bounds
     }
 }
+
