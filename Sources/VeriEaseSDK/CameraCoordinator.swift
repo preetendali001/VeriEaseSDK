@@ -8,25 +8,25 @@
 import Vision
 import AVFoundation
 
-class CameraCoordinator: NSObject, ObservableObject, AVCaptureVideoDataOutputSampleBufferDelegate {
-    @Published var isMovementDetected = false
+public class CameraCoordinator: NSObject, ObservableObject, AVCaptureVideoDataOutputSampleBufferDelegate {
+    @Published public var isMovementDetected = false
     
     private var movementCount = 0
-    let requiredMovements = 3
-    let movementInterval: TimeInterval = 3.0
+    public let requiredMovements = 3
+    public let movementInterval: TimeInterval = 3.0
     
     private var timer: Timer?
     private var movementStartTime: Date?
     
-    private var faceDetectionRequest: VNDetectFaceLandmarksRequest?
+    public var faceDetectionRequest: VNDetectFaceLandmarksRequest?
     private let faceDetectionSequenceHandler = VNSequenceRequestHandler()
     
-    override init() {
+    public override init() {
         super.init()
         faceDetectionRequest = VNDetectFaceLandmarksRequest(completionHandler: handleFaceDetection)
     }
     
-    func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
+    public func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
         guard let request = faceDetectionRequest else { return }
         
         let handler = VNImageRequestHandler(cmSampleBuffer: sampleBuffer, options: [:])
