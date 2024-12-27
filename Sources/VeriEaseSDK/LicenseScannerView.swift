@@ -8,9 +8,9 @@
 import SwiftUI
 import AVFoundation
 
-public struct LicenseScannerView: View { // Make the struct public
+public struct LicenseScannerView: View {
     
-    public var onScanned: (UIImage) -> Void // Make the closure public
+    public var onScanned: (UIImage) -> Void
 
     @State private var previewLayer: AVCaptureVideoPreviewLayer?
     @State private var captureSession: AVCaptureSession?
@@ -18,7 +18,7 @@ public struct LicenseScannerView: View { // Make the struct public
     @State private var isCameraReady = false
     @State private var photoCaptureDelegate: PhotoCaptureDelegate?
 
-    public init(onScanned: @escaping (UIImage) -> Void) { // Make the initializer public
+    public init(onScanned: @escaping (UIImage) -> Void) {
         self.onScanned = onScanned
     }
 
