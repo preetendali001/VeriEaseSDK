@@ -113,4 +113,36 @@ public struct LicenseScannerView: View {
         self.photoCaptureDelegate = delegate
         photoOutput.capturePhoto(with: settings, delegate: delegate)
     }
+
+     private func focusCamera(point: CGPoint) {
+        let videoDevice: AVCaptureDevice?
+        if let dualCamera = AVCaptureDevice.default(.builtInDualCamera, for: .video, position: .back) {
+            videoDevice = dualCamera
+        } else if let wideCamera = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back) {
+            videoDevice = wideCamera
+        } else {
+            print("No compatible camera found.")
+            return
+        }
+        guard let captureSession = captureSession, captureSession.isRunning else {
+            print("Capture session is not running.")
+            return
+        }
+        do {
+            try videoDevice?.lockForConfiguration()
+            
+            if let videoDevice = videoDevice, videoDevice.isFocusPointOfInterestSupported {
+                videoDevice.focusPointOfInterest = point
+                videoDevice.focusMode = .autoFocus
+            }
+            
+            if let videoDevice = videoDevice, videoDevice.isExposurePointOfInterestSupported {
+                videoDevice.exposurePointOfInterest = point
+                videoDevice.exposureMode = .autoExpose
+            }
+            videoDevice?.unlockForConfiguration()
+        } catch {
+            print("Failed to configure focus: \(error)")
+        }
+    }
 }
