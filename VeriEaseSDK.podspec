@@ -1,6 +1,7 @@
 Pod::Spec.new do |s|
   s.name             = 'VeriEaseSDK'
-  s.version          = '1.0.3'
+  s.version          = '1.0.4
+  '
   s.swift_versions   = '5.0'
   s.summary          = 'A SDK for face recognition and camera-based applications.'
   s.description      = <<-DESC
