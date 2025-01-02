@@ -8,22 +8,16 @@
 import SwiftUI
 import Vision
 
-public struct MatchResultView: View {
+struct MatchResultView: View {
     
-    public var scannedLicense: UIImage?
-    public var livePhoto: UIImage?
-    public var onBack: () -> Void
+    var scannedLicense: UIImage?
+    var livePhoto: UIImage?
+    var onBack: () -> Void
     
     @State private var matchResult: String = "Processing..."
     @State private var isProcessing: Bool = true
     
-    public init(scannedLicense: UIImage?, livePhoto: UIImage?, onBack: @escaping () -> Void) {
-        self.scannedLicense = scannedLicense
-        self.livePhoto = livePhoto
-        self.onBack = onBack
-    }
-    
-    public var body: some View {
+    var body: some View {
         VStack {
             HStack {
                 resultImageSection(title: "Scanned License", image: scannedLicense)
@@ -90,13 +84,13 @@ extension MatchResultView {
         
         let visionService = VisionService()
         
-        detectFaceLandmarks(service: visionService, image: licenseImage) { licenseFace in
+        detectAndAlignFace(service: visionService, image: licenseImage) { licenseFace in
             guard let licenseFace = licenseFace else {
                 setProcessingResult(result: "No face detected in license image.")
                 return
             }
             
-            detectFaceLandmarks(service: visionService, image: liveImage) { liveFace in
+            detectAndAlignFace(service: visionService, image: liveImage) { liveFace in
                 guard let liveFace = liveFace else {
                     setProcessingResult(result: "No face detected in live photo.")
                     return
@@ -108,10 +102,23 @@ extension MatchResultView {
         }
     }
     
-    private func detectFaceLandmarks(service: VisionService, image: UIImage, completion: @escaping (VNFaceObservation?) -> Void) {
+    private func detectAndAlignFace(service: VisionService, image: UIImage, completion: @escaping (VNFaceObservation?) -> Void) {
         service.detectFaceLandmarks(image: image) { face in
-            DispatchQueue.main.async {
-                completion(face)
+            guard let face = face else {
+                DispatchQueue.main.async {
+                    completion(nil)
+                }
+                return
+            }
+            
+            if let cgImage = image.cgImage, let alignedFace = service.alignFace(faceObservation: face, image: cgImage) {
+                DispatchQueue.main.async {
+                    completion(alignedFace)
+                }
+            } else {
+                DispatchQueue.main.async {
+                    completion(face)
+                }
             }
         }
     }
