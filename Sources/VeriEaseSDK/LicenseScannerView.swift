@@ -114,9 +114,11 @@ public struct LicenseScannerView: View {
         photoOutput.capturePhoto(with: settings, delegate: delegate)
     }
 
-     private func focusCamera(point: CGPoint) {
+    private func focusCamera(point: CGPoint) {
         let videoDevice: AVCaptureDevice?
-        if let dualCamera = AVCaptureDevice.default(.builtInDualCamera, for: .video, position: .back) {
+        if let tripalCamera = AVCaptureDevice.default(.builtInTripleCamera, for: .video, position: .back) {
+            videoDevice = tripalCamera
+        } else if let dualCamera = AVCaptureDevice.default(.builtInDualCamera, for: .video, position: .back) {
             videoDevice = dualCamera
         } else if let wideCamera = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back) {
             videoDevice = wideCamera
