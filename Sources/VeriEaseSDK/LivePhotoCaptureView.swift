@@ -8,10 +8,10 @@
 import SwiftUI
 import AVFoundation
 
-public struct LivePhotoCaptureView: View {
+struct LivePhotoCaptureView: View {
     
-    public var onCapture: (UIImage) -> Void
-
+    var onCapture: (UIImage) -> Void
+    
     @State private var previewLayer: AVCaptureVideoPreviewLayer?
     @State private var photoOutput: AVCapturePhotoOutput?
     @State private var isCameraReady = false
@@ -19,9 +19,9 @@ public struct LivePhotoCaptureView: View {
     @State private var currentDevicePosition: AVCaptureDevice.Position = .front
     @State private var photoCaptureDelegate: PhotoCaptureDelegate?
     @State private var isRealLivePhoto = false
-    @StateObject public var coordinator = CameraCoordinator()
+    @StateObject private var coordinator = CameraCoordinator()
     
-    public var body: some View {
+    var body: some View {
         VStack {
             if isCameraReady, let previewLayer = previewLayer {
                 CameraPreview(previewLayer: previewLayer)
@@ -130,9 +130,9 @@ public struct LivePhotoCaptureView: View {
     
     private func capturePhoto() {
         guard coordinator.isMovementDetected else {
-            print("Cannot capture photo: conditions not met.")
+               print("Cannot capture photo: conditions not met.")
             return
-        }
+           }
         
         guard let photoOutput = photoOutput else {
             print("Photo output is not available")

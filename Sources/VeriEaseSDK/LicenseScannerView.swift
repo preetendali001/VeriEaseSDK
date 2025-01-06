@@ -8,52 +8,77 @@
 import SwiftUI
 import AVFoundation
 
-public struct LicenseScannerView: View {
+struct LicenseScannerView: View {
+    var onScanned: (UIImage) -> Void
     
-    public var onScanned: (UIImage) -> Void
-
     @State private var previewLayer: AVCaptureVideoPreviewLayer?
     @State private var captureSession: AVCaptureSession?
     @State private var photoOutput: AVCapturePhotoOutput?
     @State private var isCameraReady = false
     @State private var photoCaptureDelegate: PhotoCaptureDelegate?
-
-    public init(onScanned: @escaping (UIImage) -> Void) {
-        self.onScanned = onScanned
-    }
-
-    public var body: some View {
-        VStack {
+    @State private var focusPoint: CGPoint?
+    @State private var showFocusIndicator = false
+    
+    var body: some View {
+        ZStack {
             if isCameraReady, let previewLayer = previewLayer {
                 CameraPreview(previewLayer: previewLayer)
+                    .contentShape(Rectangle())
+                    .gesture(
+                        DragGesture(minimumDistance: 0)
+                            .onEnded { gesture in
+                                let location = gesture.location
+                                let screenSize = UIScreen.main.bounds.size
+                                let normalizedPoint = CGPoint(x: location.x / screenSize.width, y: location.y / screenSize.height)
+                                focusCamera(point: normalizedPoint)
+                                focusPoint = location
+                                showFocusIndicator = true
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                                    showFocusIndicator = false
+                                }
+                            }
+                    )
             } else {
                 Text("Loading camera...")
                     .onAppear { setupCamera() }
             }
-
-            Button(action: capturePhoto) {
-                Text("Capture License")
-                    .padding()
-                    .font(.title3)
-                    .frame(maxWidth: .infinity)
-                    .background(Color.blue)
-                    .foregroundColor(.white)
-                    .cornerRadius(8)
+            
+            if showFocusIndicator, let focusPoint = focusPoint {
+                Circle()
+                    .stroke(Color.yellow, lineWidth: 2)
+                    .frame(width: 70, height: 70)
+                    .position(focusPoint)
+                    .scaleEffect(showFocusIndicator ? 1.5 : 1)
+                    .opacity(showFocusIndicator ? 0.8 : 0)
+                    .shadow(color: Color.green, radius: 10, x: 0, y: 0)
+                    .animation(.easeInOut(duration: 0.4), value: showFocusIndicator)
             }
-            .padding()
+            
+            VStack {
+                Spacer()
+                Button(action: capturePhoto) {
+                    Text("Capture License")
+                        .padding()
+                        .font(.title3)
+                        .frame(maxWidth: .infinity)
+                        .background(Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(8)
+                }
+                .padding()
+            }
         }
         .onDisappear { stopCameraSession() }
     }
-
+    
     private func setupCamera() {
         let session = AVCaptureSession()
         session.sessionPreset = .high
-
+        
         guard let videoDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back) else {
             print("No back camera found.")
             return
         }
-
         do {
             let videoInput = try AVCaptureDeviceInput(device: videoDevice)
             if session.canAddInput(videoInput) {
@@ -63,7 +88,7 @@ public struct LicenseScannerView: View {
             print("Error creating video input: \(error)")
             return
         }
-
+        
         let photoOutput = AVCapturePhotoOutput()
         if session.canAddOutput(photoOutput) {
             session.addOutput(photoOutput)
@@ -72,11 +97,11 @@ public struct LicenseScannerView: View {
             print("Failed to add photo output")
             return
         }
-
+        
         let previewLayer = AVCaptureVideoPreviewLayer(session: session)
         previewLayer.videoGravity = .resizeAspectFill
         self.previewLayer = previewLayer
-
+        
         DispatchQueue.global(qos: .userInitiated).async {
             session.startRunning()
             DispatchQueue.main.async {
@@ -85,22 +110,22 @@ public struct LicenseScannerView: View {
             }
         }
     }
-
+    
     private func stopCameraSession() {
         captureSession?.stopRunning()
     }
-
+    
     private func capturePhoto() {
         guard let captureSession = captureSession, captureSession.isRunning else {
             print("Capture session is not running")
             return
         }
-
+        
         guard let photoOutput = photoOutput else {
             print("Photo output is not available")
             return
         }
-
+        
         let settings = AVCapturePhotoSettings()
         let delegate = PhotoCaptureDelegate { image in
             if let capturedImage = image {
@@ -109,11 +134,11 @@ public struct LicenseScannerView: View {
                 print("Failed to capture image")
             }
         }
-
+        
         self.photoCaptureDelegate = delegate
         photoOutput.capturePhoto(with: settings, delegate: delegate)
     }
-
+    
     private func focusCamera(point: CGPoint) {
         let videoDevice: AVCaptureDevice?
         if let tripalCamera = AVCaptureDevice.default(.builtInTripleCamera, for: .video, position: .back) {

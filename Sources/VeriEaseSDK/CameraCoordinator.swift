@@ -8,25 +8,25 @@
 import Vision
 import AVFoundation
 
-public class CameraCoordinator: NSObject, ObservableObject, AVCaptureVideoDataOutputSampleBufferDelegate {
-    @Published public var isMovementDetected = false
+class CameraCoordinator: NSObject, ObservableObject, AVCaptureVideoDataOutputSampleBufferDelegate {
+    @Published var isMovementDetected = false
     
     private var movementCount = 0
-    public let requiredMovements = 3
-    public let movementInterval: TimeInterval = 3.0
+    let requiredMovements = 3
+    let movementInterval: TimeInterval = 3.0
     
     private var timer: Timer?
     private var movementStartTime: Date?
     
-    public var faceDetectionRequest: VNDetectFaceLandmarksRequest?
+    private var faceDetectionRequest: VNDetectFaceLandmarksRequest?
     private let faceDetectionSequenceHandler = VNSequenceRequestHandler()
     
-    public override init() {
+    override init() {
         super.init()
         faceDetectionRequest = VNDetectFaceLandmarksRequest(completionHandler: handleFaceDetection)
     }
     
-    public func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
+    func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
         guard let request = faceDetectionRequest else { return }
         
         let handler = VNImageRequestHandler(cmSampleBuffer: sampleBuffer, options: [:])
@@ -56,7 +56,7 @@ public class CameraCoordinator: NSObject, ObservableObject, AVCaptureVideoDataOu
         
         let leftEAR     = calculateEAR(eye: leftEye)
         let rightEAR    = calculateEAR(eye: rightEye)
-        let tolerance: CGFloat = 0.2
+        let tolerance: CGFloat = 0.1
         let isBlinking = leftEAR < tolerance || rightEAR < tolerance
         return isBlinking
     }
@@ -80,7 +80,7 @@ public class CameraCoordinator: NSObject, ObservableObject, AVCaptureVideoDataOu
     
     private func detectTilt(face: VNFaceObservation) -> Bool {
         let tiltAngle = abs(face.yaw?.doubleValue ?? 0.0)
-        let isTilting = tiltAngle > 0.8
+        let isTilting = tiltAngle > 0.5
         return isTilting
     }
     

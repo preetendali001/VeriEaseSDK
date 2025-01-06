@@ -7,8 +7,8 @@
 
 import UIKit
 
-public class ImageProcessingService {
-    public func resizeImage(_ image: UIImage, to size: CGSize) -> UIImage? {
+class ImageProcessingService {
+    func resizeImage(image: UIImage, size: CGSize) -> UIImage? {
         UIGraphicsBeginImageContext(size)
         image.draw(in: CGRect(origin: .zero, size: size))
         let resizedImage = UIGraphicsGetImageFromCurrentImageContext()
@@ -16,7 +16,7 @@ public class ImageProcessingService {
         return resizedImage
     }
     
-    public func convertToPixelBuffer(image: UIImage) -> CVPixelBuffer? {
+    func convertToPixelBuffer(image: UIImage) -> CVPixelBuffer? {
         guard let cgImage = image.cgImage else { return nil }
         let frameSize = CGSize(width: cgImage.width, height: cgImage.height)
         
@@ -31,7 +31,7 @@ public class ImageProcessingService {
                                          kCVPixelFormatType_32ARGB,
                                          attributes as CFDictionary,
                                          &pixelBuffer)
-        guard status == kCVReturnSuccess, let buffer = pixelBuffer else { return nil }
+        guard status == kCVReturnSuccess, let buffer = pixelBuffer else { return nil}
         
         CVPixelBufferLockBaseAddress(buffer, .readOnly)
         let context = CGContext(data: CVPixelBufferGetBaseAddress(buffer),

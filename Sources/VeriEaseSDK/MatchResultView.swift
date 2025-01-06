@@ -29,7 +29,6 @@ struct MatchResultView: View {
             } else {
                 resultText
             }
-            
             backButton
         }
         .onAppear(perform: processMatching)

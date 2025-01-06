@@ -8,14 +8,14 @@
 import UIKit
 import AVFoundation
 
-public class PhotoCaptureDelegate: NSObject, AVCapturePhotoCaptureDelegate {
+class PhotoCaptureDelegate: NSObject, AVCapturePhotoCaptureDelegate {
     private let completion: (UIImage?) -> Void
 
-    public init(completion: @escaping (UIImage?) -> Void) {
+    init(completion: @escaping (UIImage?) -> Void) {
         self.completion = completion
     }
 
-    public func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
+    func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
         
         if let error = error {
             print("Error capturing license photo: \(error.localizedDescription)")
