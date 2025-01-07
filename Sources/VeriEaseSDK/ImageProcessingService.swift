@@ -8,6 +8,9 @@
 import UIKit
 
 class ImageProcessingService {
+    
+    public init() {}
+    
     func resizeImage(image: UIImage, size: CGSize) -> UIImage? {
         UIGraphicsBeginImageContext(size)
         image.draw(in: CGRect(origin: .zero, size: size))

@@ -8,7 +8,7 @@
 import SwiftUI
 import Vision
 
-struct MatchResultView: View {
+public struct MatchResultView: View {
     
     var scannedLicense: UIImage?
     var livePhoto: UIImage?
@@ -17,7 +17,7 @@ struct MatchResultView: View {
     @State private var matchResult: String = "Processing..."
     @State private var isProcessing: Bool = true
     
-    var body: some View {
+    public var body: some View {
         VStack {
             HStack {
                 resultImageSection(title: "Scanned License", image: scannedLicense)
@@ -29,6 +29,7 @@ struct MatchResultView: View {
             } else {
                 resultText
             }
+            
             backButton
         }
         .onAppear(perform: processMatching)
@@ -38,7 +39,7 @@ struct MatchResultView: View {
 
 extension MatchResultView {
     
-    private func resultImageSection(title: String, image: UIImage?) -> some View {
+    public func resultImageSection(title: String, image: UIImage?) -> some View {
         VStack {
             if let uiImage = image {
                 Image(uiImage: uiImage)
@@ -55,14 +56,14 @@ extension MatchResultView {
         }
     }
     
-    private var resultText: some View {
+    public var resultText: some View {
         Text(matchResult)
             .font(.headline)
             .foregroundColor(matchResult.contains("Faces Match!") ? .green : .red)
             .padding()
     }
     
-    private var backButton: some View {
+    public var backButton: some View {
         Button(action: onBack) {
             Text("Back")
                 .font(.title3)

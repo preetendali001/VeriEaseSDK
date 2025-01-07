@@ -21,6 +21,10 @@ struct LivePhotoCaptureView: View {
     @State private var isRealLivePhoto = false
     @StateObject private var coordinator = CameraCoordinator()
     
+    public init(onScanned: @escaping (UIImage) -> Void) {
+        self.onCapture = onCapture
+    }
+    
     var body: some View {
         VStack {
             if isCameraReady, let previewLayer = previewLayer {
