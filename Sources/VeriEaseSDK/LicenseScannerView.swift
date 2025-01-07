@@ -19,6 +19,10 @@ struct LicenseScannerView: View {
     @State private var focusPoint: CGPoint?
     @State private var showFocusIndicator = false
     
+    public init(onScanned: @escaping (UIImage) -> Void) {
+        self.onScanned = onScanned
+    }
+    
     var body: some View {
         ZStack {
             if isCameraReady, let previewLayer = previewLayer {

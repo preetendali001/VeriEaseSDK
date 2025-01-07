@@ -21,7 +21,7 @@ struct LivePhotoCaptureView: View {
     @State private var isRealLivePhoto = false
     @StateObject private var coordinator = CameraCoordinator()
     
-    public init(onScanned: @escaping (UIImage) -> Void) {
+    public init(onCapture: @escaping (UIImage) -> Void) {
         self.onCapture = onCapture
     }
     

@@ -1,6 +1,6 @@
 platform :ios, '15.0'
 
-target 'VeriEase' do
+target 'VeriEaseSDK' do
   use_frameworks!
 
   # Define the pod for the current project
