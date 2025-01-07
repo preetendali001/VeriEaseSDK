@@ -8,7 +8,7 @@
 import SwiftUI
 import AVFoundation
 
-struct LicenseScannerView: View {
+public struct LicenseScannerView: View {
     var onScanned: (UIImage) -> Void
     
     @State private var previewLayer: AVCaptureVideoPreviewLayer?
@@ -23,7 +23,7 @@ struct LicenseScannerView: View {
         self.onScanned = onScanned
     }
     
-    var body: some View {
+   public var body: some View {
         ZStack {
             if isCameraReady, let previewLayer = previewLayer {
                 CameraPreview(previewLayer: previewLayer)

@@ -8,7 +8,7 @@
 import SwiftUI
 import AVFoundation
 
-struct LivePhotoCaptureView: View {
+public struct LivePhotoCaptureView: View {
     
     var onCapture: (UIImage) -> Void
     
@@ -25,7 +25,7 @@ struct LivePhotoCaptureView: View {
         self.onCapture = onCapture
     }
     
-    var body: some View {
+    public var body: some View {
         VStack {
             if isCameraReady, let previewLayer = previewLayer {
                 CameraPreview(previewLayer: previewLayer)
