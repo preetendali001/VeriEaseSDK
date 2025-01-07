@@ -13,5 +13,5 @@ VeriEaseSDK is an iOS SDK for face recognition and camera-based applications usi
 To install `VeriEaseSDK` in your project, add it to your `Podfile`:
 
 ```ruby
-pod 'VeriEaseSDK', :git => 'https://github.com/preetendali001/VeriEaseSDK.git', :tag => ‘1.1.0’
+pod 'VeriEaseSDK', :git => 'https://github.com/preetendali001/VeriEaseSDK.git', :tag => ‘1.1.1’
 
