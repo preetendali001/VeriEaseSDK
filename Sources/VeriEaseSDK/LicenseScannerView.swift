@@ -23,22 +23,55 @@ public struct LicenseScannerView: View {
         self.onScanned = onScanned
     }
     
-   public var body: some View {
+    private let cardSize = CGSize(width: 300, height: 200)
+    
+    var body: some View {
         ZStack {
             if isCameraReady, let previewLayer = previewLayer {
                 CameraPreview(previewLayer: previewLayer)
+                    .overlay(
+                        ZStack {
+                            Color.black.opacity(0.6)
+                                .mask(
+                                    Rectangle()
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 16)
+                                                .inset(by: -4)
+                                                .blendMode(.destinationOut)
+                                                .frame(width: cardSize.width, height: cardSize.height)
+                                                .position(x: UIScreen.main.bounds.midX, y: UIScreen.main.bounds.midY)
+                                        )
+                                )
+                                .compositingGroup()
+                                .blur(radius: 8)
+
+                            RoundedRectangle(cornerRadius: 16)
+                                .stroke(Color.white, lineWidth: 2)
+                                .frame(width: cardSize.width, height: cardSize.height)
+                                .position(x: UIScreen.main.bounds.midX, y: UIScreen.main.bounds.midY)
+                        }
+                    )
                     .contentShape(Rectangle())
                     .gesture(
                         DragGesture(minimumDistance: 0)
                             .onEnded { gesture in
                                 let location = gesture.location
-                                let screenSize = UIScreen.main.bounds.size
-                                let normalizedPoint = CGPoint(x: location.x / screenSize.width, y: location.y / screenSize.height)
-                                focusCamera(point: normalizedPoint)
-                                focusPoint = location
-                                showFocusIndicator = true
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
-                                    showFocusIndicator = false
+                                let cardFrame = CGRect (
+                                    x: UIScreen.main.bounds.midX - cardSize.width / 2,
+                                    y: UIScreen.main.bounds.midY - cardSize.height / 2,
+                                    width: cardSize.width,
+                                    height: cardSize.height
+                                )
+
+                                if cardFrame.contains(location) {
+                                    let screenSize = UIScreen.main.bounds.size
+                                    let normalizedPoint = CGPoint(x: location.x / screenSize.width, y: location.y / screenSize.height)
+                                    focusCamera(point: normalizedPoint)
+                                    focusPoint = location
+                                    showFocusIndicator = true
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                                        showFocusIndicator = false
+                                    }
                                 }
                             }
                     )
@@ -46,18 +79,18 @@ public struct LicenseScannerView: View {
                 Text("Loading camera...")
                     .onAppear { setupCamera() }
             }
-            
+
             if showFocusIndicator, let focusPoint = focusPoint {
                 Circle()
                     .stroke(Color.yellow, lineWidth: 2)
-                    .frame(width: 70, height: 70)
+                    .frame(width: 50, height: 50)
                     .position(focusPoint)
                     .scaleEffect(showFocusIndicator ? 1.5 : 1)
                     .opacity(showFocusIndicator ? 0.8 : 0)
                     .shadow(color: Color.green, radius: 10, x: 0, y: 0)
                     .animation(.easeInOut(duration: 0.4), value: showFocusIndicator)
             }
-            
+
             VStack {
                 Spacer()
                 Button(action: capturePhoto) {
@@ -74,11 +107,11 @@ public struct LicenseScannerView: View {
         }
         .onDisappear { stopCameraSession() }
     }
-    
+
     private func setupCamera() {
         let session = AVCaptureSession()
         session.sessionPreset = .high
-        
+
         guard let videoDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back) else {
             print("No back camera found.")
             return
@@ -92,7 +125,7 @@ public struct LicenseScannerView: View {
             print("Error creating video input: \(error)")
             return
         }
-        
+
         let photoOutput = AVCapturePhotoOutput()
         if session.canAddOutput(photoOutput) {
             session.addOutput(photoOutput)
@@ -101,11 +134,11 @@ public struct LicenseScannerView: View {
             print("Failed to add photo output")
             return
         }
-        
+
         let previewLayer = AVCaptureVideoPreviewLayer(session: session)
         previewLayer.videoGravity = .resizeAspectFill
         self.previewLayer = previewLayer
-        
+
         DispatchQueue.global(qos: .userInitiated).async {
             session.startRunning()
             DispatchQueue.main.async {
@@ -114,11 +147,13 @@ public struct LicenseScannerView: View {
             }
         }
     }
-    
+
     private func stopCameraSession() {
-        captureSession?.stopRunning()
+        DispatchQueue.global(qos: .background).async {
+            self.captureSession?.stopRunning()
+        }
     }
-    
+
     private func capturePhoto() {
         guard let captureSession = captureSession, captureSession.isRunning else {
             print("Capture session is not running")
@@ -133,16 +168,36 @@ public struct LicenseScannerView: View {
         let settings = AVCapturePhotoSettings()
         let delegate = PhotoCaptureDelegate { image in
             if let capturedImage = image {
-                onScanned(capturedImage)
+                VisionService().detectFaces(image: capturedImage) { message in
+                    if let message = message {
+                        if message == "Multiple faces detected." {
+                            DispatchQueue.main.async {
+                                if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
+                                    if let window = scene.windows.first(where: { $0.isKeyWindow }) {
+                                        let alertController = UIAlertController(title: "Multiple Faces Detected", message: "Please ensure only one face is visible.", preferredStyle: .alert)
+                                        alertController.addAction(UIAlertAction(title: "OK", style: .default))
+                                        window.rootViewController?.present(alertController, animated: true)
+                                    }
+                                }
+                            }
+                        } else {
+                            print(message)
+                        }
+                    } else {
+                        onScanned(capturedImage)
+                    }
+                }
             } else {
-                print("Failed to capture image")
+                print("Failed to capture image.")
             }
         }
         
         self.photoCaptureDelegate = delegate
         photoOutput.capturePhoto(with: settings, delegate: delegate)
     }
-    
+
+
+
     private func focusCamera(point: CGPoint) {
         let videoDevice: AVCaptureDevice?
         if let tripalCamera = AVCaptureDevice.default(.builtInTripleCamera, for: .video, position: .back) {
@@ -161,12 +216,12 @@ public struct LicenseScannerView: View {
         }
         do {
             try videoDevice?.lockForConfiguration()
-            
+
             if let videoDevice = videoDevice, videoDevice.isFocusPointOfInterestSupported {
                 videoDevice.focusPointOfInterest = point
                 videoDevice.focusMode = .autoFocus
             }
-            
+
             if let videoDevice = videoDevice, videoDevice.isExposurePointOfInterestSupported {
                 videoDevice.exposurePointOfInterest = point
                 videoDevice.exposureMode = .autoExpose

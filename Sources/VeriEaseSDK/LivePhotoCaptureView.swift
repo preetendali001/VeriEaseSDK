@@ -8,7 +8,7 @@
 import SwiftUI
 import AVFoundation
 
-public struct LivePhotoCaptureView: View {
+struct LivePhotoCaptureView: View {
     
     var onCapture: (UIImage) -> Void
     
@@ -20,16 +20,42 @@ public struct LivePhotoCaptureView: View {
     @State private var photoCaptureDelegate: PhotoCaptureDelegate?
     @State private var isRealLivePhoto = false
     @StateObject private var coordinator = CameraCoordinator()
+    @State private var focusPoint: CGPoint?
+    @State private var showFocusIndicator = false
     
-    public init(onCapture: @escaping (UIImage) -> Void) {
-        self.onCapture = onCapture
-    }
-    
-    public var body: some View {
+    var body: some View {
         VStack {
             if isCameraReady, let previewLayer = previewLayer {
                 CameraPreview(previewLayer: previewLayer)
                     .edgesIgnoringSafeArea(.all)
+                    .overlay(
+                        ZStack {
+                            if showFocusIndicator, let focusPoint = focusPoint {
+                                Circle()
+                                    .stroke(Color.yellow, lineWidth: 2)
+                                    .frame(width: 50, height: 50)
+                                    .position(focusPoint)
+                                    .scaleEffect(showFocusIndicator ? 1.5 : 1)
+                                    .opacity(showFocusIndicator ? 0.8 : 0)
+                                    .shadow(color: Color.green, radius: 10, x: 0, y: 0)
+                                    .animation(.easeInOut(duration: 0.4), value: showFocusIndicator)
+                            }
+                        }
+                    )
+                    .gesture(
+                        DragGesture(minimumDistance: 0)
+                            .onEnded { gesture in
+                                let location = gesture.location
+                                let screenSize = UIScreen.main.bounds.size
+                                let normalizedPoint = CGPoint(x: location.x / screenSize.width, y: location.y / screenSize.height)
+                                focusCamera(point: normalizedPoint)
+                                focusPoint = location
+                                showFocusIndicator = true
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                                    showFocusIndicator = false
+                                }
+                            }
+                    )
             } else {
                 Text("Loading camera...")
                     .onAppear { setupCamera() }
@@ -134,15 +160,15 @@ public struct LivePhotoCaptureView: View {
     
     private func capturePhoto() {
         guard coordinator.isMovementDetected else {
-               print("Cannot capture photo: conditions not met.")
+            print("Cannot capture photo: conditions not met.")
             return
-           }
+        }
         
         guard let photoOutput = photoOutput else {
             print("Photo output is not available")
             return
         }
-
+        
         let settings = AVCapturePhotoSettings()
         let delegate = PhotoCaptureDelegate { image in
             if let capturedImage = image {
@@ -202,5 +228,30 @@ public struct LivePhotoCaptureView: View {
         previewLayer = nil
         photoOutput = nil
         isCameraReady = false
+    }
+    
+    private func focusCamera(point: CGPoint) {
+        guard let videoDevice = currentDevice else {
+            print("No camera device found.")
+            return
+        }
+        
+        do {
+            try videoDevice.lockForConfiguration()
+            
+            if videoDevice.isFocusPointOfInterestSupported {
+                videoDevice.focusPointOfInterest = point
+                videoDevice.focusMode = .autoFocus
+            }
+            
+            if videoDevice.isExposurePointOfInterestSupported {
+                videoDevice.exposurePointOfInterest = point
+                videoDevice.exposureMode = .autoExpose
+            }
+            
+            videoDevice.unlockForConfiguration()
+        } catch {
+            print("Failed to configure focus: \(error)")
+        }
     }
 }
