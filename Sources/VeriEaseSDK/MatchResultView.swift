@@ -8,7 +8,7 @@
 import SwiftUI
 import Vision
 
-public struct MatchResultView: View {
+struct MatchResultView: View {
     
     var scannedLicense: UIImage?
     var livePhoto: UIImage?
@@ -17,7 +17,7 @@ public struct MatchResultView: View {
     @State private var matchResult: String = "Processing..."
     @State private var isProcessing: Bool = true
     
-    public var body: some View {
+    var body: some View {
         VStack {
             HStack {
                 resultImageSection(title: "Scanned License", image: scannedLicense)
@@ -29,7 +29,6 @@ public struct MatchResultView: View {
             } else {
                 resultText
             }
-            
             backButton
         }
         .onAppear(perform: processMatching)
@@ -39,7 +38,7 @@ public struct MatchResultView: View {
 
 extension MatchResultView {
     
-    public func resultImageSection(title: String, image: UIImage?) -> some View {
+    private func resultImageSection(title: String, image: UIImage?) -> some View {
         VStack {
             if let uiImage = image {
                 Image(uiImage: uiImage)
@@ -56,14 +55,14 @@ extension MatchResultView {
         }
     }
     
-    public var resultText: some View {
+    private var resultText: some View {
         Text(matchResult)
             .font(.headline)
             .foregroundColor(matchResult.contains("Faces Match!") ? .green : .red)
             .padding()
     }
     
-    public var backButton: some View {
+    private var backButton: some View {
         Button(action: onBack) {
             Text("Back")
                 .font(.title3)
@@ -83,6 +82,7 @@ extension MatchResultView {
         }
         
         let visionService = VisionService()
+        let glassDetector = GlassesDetector()
         
         detectAndAlignFace(service: visionService, image: licenseImage) { licenseFace in
             guard let licenseFace = licenseFace else {
@@ -90,17 +90,28 @@ extension MatchResultView {
                 return
             }
             
+            let licenseGlassesResult = glassDetector.detectGlasses(face: licenseFace)
+            let hasGlassesInLicense = licenseGlassesResult.hasGlasses
+            
             detectAndAlignFace(service: visionService, image: liveImage) { liveFace in
                 guard let liveFace = liveFace else {
                     setProcessingResult(result: "No face detected in live photo.")
                     return
                 }
                 
-                let isMatch = visionService.compareFaces(licenseFace: licenseFace, liveFace: liveFace)
-                setProcessingResult(result: isMatch ? "Faces Match!" : "Faces Do Not Match!")
+                let liveGlassesResult = glassDetector.detectGlasses(face: liveFace)
+                let hasGlassesInLive = liveGlassesResult.hasGlasses
+                
+                if !hasGlassesInLicense && hasGlassesInLive {
+                    setProcessingResult(result: "Please remove glasses and try again.")
+                } else {
+                    let isMatch = visionService.compareFaces(licenseFace: licenseFace, liveFace: liveFace)
+                    setProcessingResult(result: isMatch ? "Faces Match!" : "Faces Do Not Match!")
+                }
             }
         }
     }
+
     
     private func detectAndAlignFace(service: VisionService, image: UIImage, completion: @escaping (VNFaceObservation?) -> Void) {
         service.detectFaceLandmarks(image: image) { face in

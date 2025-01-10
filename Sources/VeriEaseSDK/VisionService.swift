@@ -143,4 +143,21 @@ class VisionService {
             return nil
         }
     }
+    
+    func detectGlasses(face: VNFaceObservation) -> Bool {
+        guard let landmarks = face.landmarks else { return false }
+        if let leftEye = landmarks.leftEye, let rightEye = landmarks.rightEye {
+            
+            let leftEyePoints = leftEye.normalizedPoints
+            let rightEyePoints = rightEye.normalizedPoints
+            
+            if leftEyePoints.count > 2 && rightEyePoints.count > 2 {
+                let leftEyeX = leftEyePoints[0].x
+                let rightEyeX = rightEyePoints[0].x
+                let eyeDistance = abs(leftEyeX - rightEyeX)
+                return eyeDistance < 0.2
+            }
+        }
+        return false
+    }
 }
