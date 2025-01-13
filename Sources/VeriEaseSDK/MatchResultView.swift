@@ -90,29 +90,29 @@ extension MatchResultView {
                 return
             }
             
-            let licenseGlassesResult = glassDetector.detectGlasses(face: licenseFace)
-            let hasGlassesInLicense = licenseGlassesResult.hasGlasses
-            
             detectAndAlignFace(service: visionService, image: liveImage) { liveFace in
                 guard let liveFace = liveFace else {
                     setProcessingResult(result: "No face detected in live photo.")
                     return
                 }
+                let isMatch = visionService.compareFaces(licenseFace: licenseFace, liveFace: liveFace)
                 
-                let liveGlassesResult = glassDetector.detectGlasses(face: liveFace)
-                let hasGlassesInLive = liveGlassesResult.hasGlasses
-                
-                if !hasGlassesInLicense && hasGlassesInLive {
-                    setProcessingResult(result: "Please remove glasses and try again.")
+                if isMatch {
+                    setProcessingResult(result: "Faces Match!")
                 } else {
-                    let isMatch = visionService.compareFaces(licenseFace: licenseFace, liveFace: liveFace)
-                    setProcessingResult(result: isMatch ? "Faces Match!" : "Faces Do Not Match!")
+                    let licenseGlassesResult = glassDetector.detectGlasses(face: licenseFace)
+                    let liveGlassesResult = glassDetector.detectGlasses(face: liveFace)
+                    
+                    if !licenseGlassesResult.hasGlasses && liveGlassesResult.hasGlasses {
+                        setProcessingResult(result: "Faces Do Not Match! Please remove glasses and try again.")
+                    } else {
+                        setProcessingResult(result: "Faces Do Not Match!")
+                    }
                 }
             }
         }
     }
 
-    
     private func detectAndAlignFace(service: VisionService, image: UIImage, completion: @escaping (VNFaceObservation?) -> Void) {
         service.detectFaceLandmarks(image: image) { face in
             guard let face = face else {
