@@ -25,7 +25,7 @@ public struct LicenseScannerView: View {
     
     private let cardSize = CGSize(width: 300, height: 200)
     
-    var body: some View {
+    public var body: some View {
         ZStack {
             if isCameraReady, let previewLayer = previewLayer {
                 CameraPreview(previewLayer: previewLayer)
